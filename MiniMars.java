@@ -19,6 +19,7 @@ public final class MiniMars {
         ROPS.put("ADD", 2);
         ROPS.put("SUB", 6);
         ROPS.put("SLT", 7);
+        ROPS.put("MUL", 8);
         ROPS.put("NOR", 12);
     }
 
@@ -198,6 +199,9 @@ public final class MiniMars {
             segment = "TEXT";
             continue;
            }
+           // Checks if the current segment is TEXT
+           // Reads instructions and checks for duplicate labels
+           // Stores the instructions and labels for later processing
            if (segment.equals("TEXT")){
              String body = line;
              Matcher matcher = LABEL.matcher(body);
@@ -221,6 +225,9 @@ public final class MiniMars {
              }
              continue;
            }
+           // Checks if the current segment is DATA
+           // Reads data labels and records their memory addresses
+           // Processes .WORD values and stores them for initialization
            if (segment.equals("DATA")) {
             String body = line;
             Matcher matcher = LABEL.matcher(body);
@@ -284,7 +291,9 @@ public final class MiniMars {
                 throw s.error("Expected .WORD declaration");
             }
          }
-          
+          // Checks if the current segment is neither TEXT nor DATA
+          // Makes sure instructions are not written outside these segments
+          // Throws an error if an invalid instruction is found
          if (!segment.equals("TEXT") && !segment.equals("DATA")) {
          if (!line.startsWith(".")) {
             throw s.error("Instruction outside .DATA or .TEXT");
@@ -366,9 +375,6 @@ public final class MiniMars {
                 break;
             }
             // Offset -1 branches from the next PC back to this instruction.
-            case "MUL":
-            note("# Unsupported, skipped for testing");
-            break;
             case "STOP":
                 arity(t, 1, s);
                 note("# " + s.text + " # pseudo instruction");
@@ -410,7 +416,9 @@ public final class MiniMars {
         String[] t = tokens(ins.text);
         String op = t[0].toUpperCase(Locale.ROOT);
         Source s = ins.source;
-
+        // Checks the instruction type and processes each supported operation
+        // Validates registers, immediate values, and addresses for each instruction
+        // Converts R-type, I-type, and J-type instructions into 16-bit machine code
         if (ROPS.containsKey(op)){
             arity(t, 4, s);
             int rd = reg(t[1], s);
